@@ -1,0 +1,76 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Text editor</title>
+	<style>
+    body{
+    overflow-x:hidden;
+    overflow-y:hidden;
+    }
+    textarea:focus, input:focus{
+      outline: none;
+    }
+  	.text_edit {
+      padding: 2%;
+  		width: 100%;
+  		height: 90%;
+  		resize: none;
+      border-width: 0;
+      font-family: Georgia, Times, "Times New Roman", serif;
+    	font-size: 24px;
+    	font-style: normal;
+    	font-variant: normal;
+    	font-weight: 500;
+    	line-height: 26.4px;
+    }
+    .text_edit:focus {
+      outline: none;
+    }
+	</style>
+
+
+</head>
+<body>
+
+    <textarea class="text_edit" id="my_text" placeholder="Start typing..."></textarea>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/caret-positions/dist/lib/caret-positions.js" ></script>
+    <script src="caret.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            const socket = io.connect("http://127.0.0.1:8000");
+            let text = document.getElementById("my_text")
+            let socket_id;
+            socket.on("connect", function(){
+                socket_id = socket.id
+            })
+
+            text.oninput = function () {
+                let text2 = text.value
+                socket.emit("message", text2)
+                console.log("done", text2)
+                console.log($("#my_text").caret())
+            }
+
+            socket.on("send", function(text3){
+                console.log("received", text3)
+                text.value = text3
+            })
+            setInterval(function(){
+                socket.emit("cursor", $("#my_text").caret())
+            }, 500)
+
+            socket.on("cursor_all", function(cursors){
+                if (cursors.user_id == socket_id){
+                    return
+                }
+            } )
+        });
+    </script>
+
+</body>
+
+</html>
